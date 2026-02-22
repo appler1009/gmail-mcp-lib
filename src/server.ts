@@ -30,90 +30,134 @@ const server = new Server(
   }
 );
 
-// Zod schemas for tool inputs
-const TokensSchema = z.object({
-  accessToken: z.string(),
-  refreshToken: z.string().optional(),
-  expiryDate: z.number().optional(),
-  tokenType: z.string().optional(),
-});
+// JSON Schema definitions for tool inputs
+const tokensSchema = {
+  type: 'object' as const,
+  properties: {
+    accessToken: { type: 'string' },
+    refreshToken: { type: 'string' },
+    expiryDate: { type: 'number' },
+    tokenType: { type: 'string' },
+  },
+};
 
-const ListMessagesInputSchema = z.object({
-  q: z.string().optional().describe('Gmail search query'),
-  maxResults: z.number().optional().describe('Max results to return'),
-  pageToken: z.string().optional().describe('Pagination token'),
-  includeSpamTrash: z.boolean().optional().describe('Include spam and trash'),
-  labelIds: z.array(z.string()).optional().describe('Label IDs to filter by'),
-  tokens: TokensSchema.optional().describe('Gmail authentication tokens'),
-});
+const ListMessagesInputSchema = {
+  type: 'object' as const,
+  properties: {
+    q: { type: 'string', description: 'Gmail search query' },
+    maxResults: { type: 'number', description: 'Max results to return' },
+    pageToken: { type: 'string', description: 'Pagination token' },
+    includeSpamTrash: { type: 'boolean', description: 'Include spam and trash' },
+    labelIds: { type: 'array', items: { type: 'string' }, description: 'Label IDs to filter by' },
+    tokens: { ...tokensSchema, description: 'Gmail authentication tokens' },
+  },
+};
 
-const GetMessageInputSchema = z.object({
-  messageId: z.string().describe('The message ID'),
-  format: z.enum(['full', 'minimal', 'raw', 'metadata']).optional().default('full'),
-  tokens: TokensSchema.optional().describe('Gmail authentication tokens'),
-});
+const GetMessageInputSchema = {
+  type: 'object' as const,
+  properties: {
+    messageId: { type: 'string', description: 'The message ID' },
+    format: { type: 'string', enum: ['full', 'minimal', 'raw', 'metadata'], description: 'Message format' },
+    tokens: { ...tokensSchema, description: 'Gmail authentication tokens' },
+  },
+  required: ['messageId'],
+};
 
-const SearchMessagesInputSchema = z.object({
-  query: z.string().describe('Gmail search query'),
-  maxResults: z.number().optional().describe('Max results to return'),
-  pageToken: z.string().optional().describe('Pagination token'),
-  labelIds: z.array(z.string()).optional().describe('Label IDs to filter by'),
-  tokens: TokensSchema.optional().describe('Gmail authentication tokens'),
-});
+const SearchMessagesInputSchema = {
+  type: 'object' as const,
+  properties: {
+    query: { type: 'string', description: 'Gmail search query' },
+    maxResults: { type: 'number', description: 'Max results to return' },
+    pageToken: { type: 'string', description: 'Pagination token' },
+    labelIds: { type: 'array', items: { type: 'string' }, description: 'Label IDs to filter by' },
+    tokens: { ...tokensSchema, description: 'Gmail authentication tokens' },
+  },
+  required: ['query'],
+};
 
-const SendMessageInputSchema = z.object({
-  to: z.union([z.string(), z.array(z.string())]).describe('Recipient(s)'),
-  subject: z.string().optional().describe('Email subject'),
-  body: z.string().optional().describe('Email body'),
-  html: z.boolean().optional().default(false).describe('Whether body is HTML'),
-  threadId: z.string().optional().describe('Reply to thread ID'),
-  inReplyTo: z.string().optional().describe('In-Reply-To message ID'),
-  tokens: TokensSchema.optional().describe('Gmail authentication tokens'),
-});
+const SendMessageInputSchema = {
+  type: 'object' as const,
+  properties: {
+    to: { oneOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }], description: 'Recipient(s)' },
+    subject: { type: 'string', description: 'Email subject' },
+    body: { type: 'string', description: 'Email body' },
+    html: { type: 'boolean', description: 'Whether body is HTML' },
+    threadId: { type: 'string', description: 'Reply to thread ID' },
+    inReplyTo: { type: 'string', description: 'In-Reply-To message ID' },
+    tokens: { ...tokensSchema, description: 'Gmail authentication tokens' },
+  },
+  required: ['to'],
+};
 
-const CreateDraftInputSchema = z.object({
-  to: z.union([z.string(), z.array(z.string())]).describe('Recipient(s)'),
-  subject: z.string().optional().describe('Email subject'),
-  body: z.string().optional().describe('Email body'),
-  html: z.boolean().optional().default(false).describe('Whether body is HTML'),
-  threadId: z.string().optional().describe('Reply to thread ID'),
-  tokens: TokensSchema.optional().describe('Gmail authentication tokens'),
-});
+const CreateDraftInputSchema = {
+  type: 'object' as const,
+  properties: {
+    to: { oneOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }], description: 'Recipient(s)' },
+    subject: { type: 'string', description: 'Email subject' },
+    body: { type: 'string', description: 'Email body' },
+    html: { type: 'boolean', description: 'Whether body is HTML' },
+    threadId: { type: 'string', description: 'Reply to thread ID' },
+    tokens: { ...tokensSchema, description: 'Gmail authentication tokens' },
+  },
+  required: ['to'],
+};
 
-const ListLabelsInputSchema = z.object({
-  tokens: TokensSchema.optional().describe('Gmail authentication tokens'),
-});
+const ListLabelsInputSchema = {
+  type: 'object' as const,
+  properties: {
+    tokens: { ...tokensSchema, description: 'Gmail authentication tokens' },
+  },
+};
 
-const ModifyLabelsInputSchema = z.object({
-  messageId: z.string().describe('The message ID'),
-  addLabelIds: z.array(z.string()).optional().describe('Labels to add'),
-  removeLabelIds: z.array(z.string()).optional().describe('Labels to remove'),
-  tokens: TokensSchema.optional().describe('Gmail authentication tokens'),
-});
+const ModifyLabelsInputSchema = {
+  type: 'object' as const,
+  properties: {
+    messageId: { type: 'string', description: 'The message ID' },
+    addLabelIds: { type: 'array', items: { type: 'string' }, description: 'Labels to add' },
+    removeLabelIds: { type: 'array', items: { type: 'string' }, description: 'Labels to remove' },
+    tokens: { ...tokensSchema, description: 'Gmail authentication tokens' },
+  },
+  required: ['messageId'],
+};
 
-const TrashMessageInputSchema = z.object({
-  messageId: z.string().describe('The message ID'),
-  tokens: TokensSchema.optional().describe('Gmail authentication tokens'),
-});
+const TrashMessageInputSchema = {
+  type: 'object' as const,
+  properties: {
+    messageId: { type: 'string', description: 'The message ID' },
+    tokens: { ...tokensSchema, description: 'Gmail authentication tokens' },
+  },
+  required: ['messageId'],
+};
 
-const UntrashMessageInputSchema = z.object({
-  messageId: z.string().describe('The message ID'),
-  tokens: TokensSchema.optional().describe('Gmail authentication tokens'),
-});
+const UntrashMessageInputSchema = {
+  type: 'object' as const,
+  properties: {
+    messageId: { type: 'string', description: 'The message ID' },
+    tokens: { ...tokensSchema, description: 'Gmail authentication tokens' },
+  },
+  required: ['messageId'],
+};
 
-const ListThreadsInputSchema = z.object({
-  q: z.string().optional().describe('Gmail search query'),
-  maxResults: z.number().optional().describe('Max results to return'),
-  pageToken: z.string().optional().describe('Pagination token'),
-  labelIds: z.array(z.string()).optional().describe('Label IDs to filter by'),
-  tokens: TokensSchema.optional().describe('Gmail authentication tokens'),
-});
+const ListThreadsInputSchema = {
+  type: 'object' as const,
+  properties: {
+    q: { type: 'string', description: 'Gmail search query' },
+    maxResults: { type: 'number', description: 'Max results to return' },
+    pageToken: { type: 'string', description: 'Pagination token' },
+    labelIds: { type: 'array', items: { type: 'string' }, description: 'Label IDs to filter by' },
+    tokens: { ...tokensSchema, description: 'Gmail authentication tokens' },
+  },
+};
 
-const GetThreadInputSchema = z.object({
-  threadId: z.string().describe('The thread ID'),
-  format: z.enum(['full', 'minimal', 'metadata']).optional().default('full'),
-  tokens: TokensSchema.optional().describe('Gmail authentication tokens'),
-});
+const GetThreadInputSchema = {
+  type: 'object' as const,
+  properties: {
+    threadId: { type: 'string', description: 'The thread ID' },
+    format: { type: 'string', enum: ['full', 'minimal', 'metadata'], description: 'Thread format' },
+    tokens: { ...tokensSchema, description: 'Gmail authentication tokens' },
+  },
+  required: ['threadId'],
+};
 
 const tools: Tool[] = [
   {
@@ -178,8 +222,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 });
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request;
-  const toolArgs = args as Record<string, unknown>;
+  const { params } = request;
+  const { name, arguments: args } = params;
+  const toolArgs = (args || {}) as Record<string, unknown>;
   const tokens = (toolArgs.tokens as Tokens) || undefined;
 
   try {
