@@ -1,6 +1,6 @@
 {
   "name": "gmail-mcp-lib",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "TypeScript npm package providing Gmail access via official SDK with dual mode: standalone MCP stdio server and library for Node.js/TS projects",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
