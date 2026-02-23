@@ -555,6 +555,74 @@ describe('Gmail Client', () => {
       await expect((client as any).getThread('me', 'thread1')).rejects.toThrow('Thread get failed');
     });
   });
+
+  describe('archiveMessage', () => {
+    it('should archive a message by removing INBOX label', async () => {
+      const client = createGmailClient({ tokens: mockTokens });
+      const mockArchivedMessage = { id: 'msg1', threadId: 'thread1', labelIds: ['IMPORTANT'] };
+
+      const googleModule = require('googleapis');
+      const api = googleModule.google.gmail();
+      api.users.messages.modify.mockResolvedValue({
+        data: mockArchivedMessage,
+      });
+
+      const result = await (client as any).archiveMessage('me', 'msg1');
+
+      expect(api.users.messages.modify).toHaveBeenCalledWith({
+        userId: 'me',
+        id: 'msg1',
+        requestBody: {
+          removeLabelIds: ['INBOX'],
+        },
+      });
+      expect(result).toEqual(mockArchivedMessage);
+    });
+
+    it('should handle archive errors', async () => {
+      const client = createGmailClient({ tokens: mockTokens });
+      const googleModule = require('googleapis');
+      const api = googleModule.google.gmail();
+
+      api.users.messages.modify.mockRejectedValue(new Error('Archive failed'));
+
+      await expect((client as any).archiveMessage('me', 'msg1')).rejects.toThrow('Archive failed');
+    });
+  });
+
+  describe('unarchiveMessage', () => {
+    it('should unarchive a message by adding INBOX label', async () => {
+      const client = createGmailClient({ tokens: mockTokens });
+      const mockUnarchivedMessage = { id: 'msg1', threadId: 'thread1', labelIds: ['INBOX', 'IMPORTANT'] };
+
+      const googleModule = require('googleapis');
+      const api = googleModule.google.gmail();
+      api.users.messages.modify.mockResolvedValue({
+        data: mockUnarchivedMessage,
+      });
+
+      const result = await (client as any).unarchiveMessage('me', 'msg1');
+
+      expect(api.users.messages.modify).toHaveBeenCalledWith({
+        userId: 'me',
+        id: 'msg1',
+        requestBody: {
+          addLabelIds: ['INBOX'],
+        },
+      });
+      expect(result).toEqual(mockUnarchivedMessage);
+    });
+
+    it('should handle unarchive errors', async () => {
+      const client = createGmailClient({ tokens: mockTokens });
+      const googleModule = require('googleapis');
+      const api = googleModule.google.gmail();
+
+      api.users.messages.modify.mockRejectedValue(new Error('Unarchive failed'));
+
+      await expect((client as any).unarchiveMessage('me', 'msg1')).rejects.toThrow('Unarchive failed');
+    });
+  });
 });
 
 describe('Error handling', () => {

@@ -159,6 +159,24 @@ const GetThreadInputSchema = {
   required: ['threadId'],
 };
 
+const ArchiveMessageInputSchema = {
+  type: 'object' as const,
+  properties: {
+    messageId: { type: 'string', description: 'The message ID' },
+    tokens: { ...tokensSchema, description: 'Gmail authentication tokens' },
+  },
+  required: ['messageId'],
+};
+
+const UnarchiveMessageInputSchema = {
+  type: 'object' as const,
+  properties: {
+    messageId: { type: 'string', description: 'The message ID' },
+    tokens: { ...tokensSchema, description: 'Gmail authentication tokens' },
+  },
+  required: ['messageId'],
+};
+
 const tools: Tool[] = [
   {
     name: 'gmailListMessages',
@@ -214,6 +232,16 @@ const tools: Tool[] = [
     name: 'gmailGetThread',
     description: 'Get a specific thread by ID',
     inputSchema: GetThreadInputSchema,
+  },
+  {
+    name: 'gmailArchiveMessage',
+    description: 'Archive a message (remove from inbox)',
+    inputSchema: ArchiveMessageInputSchema,
+  },
+  {
+    name: 'gmailUnarchiveMessage',
+    description: 'Unarchive a message (restore to inbox)',
+    inputSchema: UnarchiveMessageInputSchema,
   },
 ];
 
@@ -383,6 +411,30 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               type: 'text',
               text: JSON.stringify(
                 await (client as any).getThread('me', toolArgs.threadId, toolArgs.format)
+              ),
+            },
+          ],
+        };
+
+      case 'gmailArchiveMessage':
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                await (client as any).archiveMessage('me', toolArgs.messageId)
+              ),
+            },
+          ],
+        };
+
+      case 'gmailUnarchiveMessage':
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(
+                await (client as any).unarchiveMessage('me', toolArgs.messageId)
               ),
             },
           ],

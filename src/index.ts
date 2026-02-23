@@ -181,6 +181,38 @@ class GmailClient {
     }
   }
 
+  async archiveMessage(userId: string = 'me', messageId: string): Promise<Message> {
+    try {
+      const response = await this.gmail.users.messages.modify({
+        userId,
+        id: messageId,
+        requestBody: {
+          removeLabelIds: ['INBOX'],
+        },
+      });
+
+      return response.data as Message;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async unarchiveMessage(userId: string = 'me', messageId: string): Promise<Message> {
+    try {
+      const response = await this.gmail.users.messages.modify({
+        userId,
+        id: messageId,
+        requestBody: {
+          addLabelIds: ['INBOX'],
+        },
+      });
+
+      return response.data as Message;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
   async listThreads(userId: string = 'me', options?: ListThreadsOptions): Promise<Thread[]> {
     try {
       const response = await this.gmail.users.threads.list({
@@ -302,4 +334,14 @@ export async function listThreads(tokens?: Tokens, options?: ListThreadsOptions)
 export async function getThread(threadId: string, tokens?: Tokens, format?: 'full' | 'minimal' | 'metadata'): Promise<Thread> {
   const client = new GmailClient(resolveTokens(tokens));
   return client.getThread('me', threadId, format);
+}
+
+export async function archiveMessage(messageId: string, tokens?: Tokens): Promise<Message> {
+  const client = new GmailClient(resolveTokens(tokens));
+  return client.archiveMessage('me', messageId);
+}
+
+export async function unarchiveMessage(messageId: string, tokens?: Tokens): Promise<Message> {
+  const client = new GmailClient(resolveTokens(tokens));
+  return client.unarchiveMessage('me', messageId);
 }

@@ -150,6 +150,12 @@ const trashed = await client.trashMessage('me', 'messageId');
 // Restore from trash
 const restored = await client.untrashMessage('me', 'messageId');
 
+// Archive message (remove from inbox)
+const archived = await client.archiveMessage('me', 'messageId');
+
+// Unarchive message (restore to inbox)
+const unarchived = await client.unarchiveMessage('me', 'messageId');
+
 // List threads
 const threads = await client.listThreads('me', {
   q: 'is:unread',
@@ -185,6 +191,8 @@ The server exposes the following tools:
 - `gmailModifyMessageLabels` - Add or remove labels from a message
 - `gmailTrashMessage` - Move a message to trash
 - `gmailUntrashMessage` - Restore a message from trash
+- `gmailArchiveMessage` - Archive a message (remove from inbox)
+- `gmailUnarchiveMessage` - Unarchive a message (restore to inbox)
 - `gmailListThreads` - List threads in the mailbox
 - `gmailGetThread` - Get a specific thread by ID
 
@@ -303,6 +311,8 @@ createDraft(options: CreateDraftOptions, tokens?: Tokens): Promise<Draft>
 modifyMessageLabels(messageId: string, options: ModifyLabelsOptions, tokens?: Tokens): Promise<Message>
 trashMessage(messageId: string, tokens?: Tokens): Promise<Message>
 untrashMessage(messageId: string, tokens?: Tokens): Promise<Message>
+archiveMessage(messageId: string, tokens?: Tokens): Promise<Message>
+unarchiveMessage(messageId: string, tokens?: Tokens): Promise<Message>
 ```
 
 #### Label Functions
